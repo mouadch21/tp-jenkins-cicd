@@ -1,4 +1,4 @@
-﻿package com.example.service;
+package com.example.service;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,5 +20,12 @@ class LoginServiceTest {
     @Test
     void shouldRejectUnknownUsername() {
         assertFalse(loginService.authenticate("unknown", "smartcampus123"));
+    }
+
+    @Test
+    void shouldRejectNullCredentials() {
+        assertFalse(loginService.authenticate(null, "smartcampus123"));
+        assertFalse(loginService.authenticate("admin", null));
+        assertFalse(loginService.authenticate(null, null));
     }
 }
