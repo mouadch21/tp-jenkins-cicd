@@ -1,6 +1,12 @@
 
 package com.example.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,7 +69,7 @@ class LoginServiceTest {
         loginService.login("mouad@example.com", "wrong3");
 
         assertEquals(
-            "Échec de connexion : vous avez atteint 3 tentatives échouées.",
+            "Echec de connexion : vous avez atteint 3 tentatives échouées.",
             loginService.getLoginMessage("mouad@example.com")
         );
     }
@@ -79,5 +85,38 @@ class LoginServiceTest {
             loginService.getLoginMessage("mouad@example.com")
         );
     }
+    @Test
+    void shouldLogSecurityEventAfterThreeFailedAttempts() {
+    Logger logger = Logger.getLogger(LoginService.class.getName());
+    List<String> messages = new ArrayList<>();
 
+    Handler handler = new Handler() {
+        @Override
+        public void publish(LogRecord record) {
+            messages.add(record.getMessage());
+        }
+
+        @Override
+        public void flush() {
+        }
+
+        @Override
+        public void close() {
+        }
+    };
+
+    logger.addHandler(handler);
+
+    try {
+        loginService.login("mouad@example.com", "wrong1");
+        loginService.login("mouad@example.com", "wrong2");
+        loginService.login("mouad@example.com", "wrong3");
+
+        assertTrue(messages.stream().anyMatch(
+            message -> message.contains("SECURITY_EVENT")
+        ));
+    } finally {
+        logger.removeHandler(handler);
+    }
+}
 }

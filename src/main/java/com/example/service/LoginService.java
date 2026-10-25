@@ -1,8 +1,8 @@
 
 package com.example.service;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.example.model.User;
 
@@ -10,6 +10,8 @@ public class LoginService {
 
     private final Map<String, User> users = new HashMap<>();
     private final Map<String, Integer> failedAttempts = new HashMap<>();
+    private static final Logger LOGGER =
+        Logger.getLogger(LoginService.class.getName());
 
     public void register(User user) {
         if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
@@ -34,7 +36,18 @@ public class LoginService {
             return true;
         }
 
-        failedAttempts.merge(normalizedEmail, 1, Integer::sum);
+        int attempts = failedAttempts.merge(
+             normalizedEmail, 1, Integer::sum
+        );
+
+        if (attempts == 3) {
+          LOGGER.log(
+            java.util.logging.Level.WARNING,
+            "SECURITY_EVENT: Three consecutive login failures for email: {0}",
+            normalizedEmail
+            );
+        } 
+
         return false;
     }
 
@@ -47,7 +60,7 @@ public class LoginService {
         int attempts = failedAttempts.getOrDefault(normalizedEmail, 0);
 
         if (attempts >= 3) {
-            return "Échec de connexion : vous avez atteint 3 tentatives échouées.";
+            return "Echec de connexion : vous avez atteint 3 tentatives échouées.";
         }
 
         return "Email ou mot de passe incorrect.";
