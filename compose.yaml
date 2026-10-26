@@ -1,0 +1,39 @@
+﻿services:
+  api:
+    image: smartcampus:1.0
+    container_name: smartcampus-compose-api
+    ports:
+      - "8083:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: smartcampus
+      DB_USER: smartcampus
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: smartcampus-compose-db
+    environment:
+      POSTGRES_DB: smartcampus
+      POSTGRES_USER: smartcampus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - smartcampus-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartcampus -d smartcampus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  smartcampus-db-data:
+    external: true
+    name: tp-jenkins-cicd_smartcampus-db-data

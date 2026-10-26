@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -13,11 +14,18 @@ pipeline {
                 sh 'mvn -B clean test'
             }
         }
+
+        stage('Package JAR') {
+            steps {
+                sh 'mvn -B package -DskipTests'
+            }
+        }
     }
 
     post {
         success {
-            echo 'Compilation et tests reussis !'
+            archiveArtifacts artifacts: 'target/*.jar'
+            echo 'Compilation, tests et generation du JAR reussis !'
         }
         failure {
             echo 'Echec du pipeline CI/CD.'
